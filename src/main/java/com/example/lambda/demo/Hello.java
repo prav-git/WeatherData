@@ -6,34 +6,32 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.sql.Timestamp;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 public class Hello implements RequestHandler<Object, String> {
 
+	Utils utils = new Utils();
 	private String city = "08902,us";
 	@Override
 	public String handleRequest(Object input, Context context) {
-	context.getLogger().log("Method Entry: handleRequest() @ "+getCurrentTime());
+	context.getLogger().log("\nMethod Entry: handleRequest() @ "+utils.getCurrentTime());
 	String callOutcome = "failure";
-	if (input != null)
+	if (input != null && input.toString() != "{}")
 		city = input.toString()+",us";
 	
+	context.getLogger().log("\nCalling callWeatherAPI() with city as: "+city);
 	String	weatherData = callWeatherAPI(city, context);
 	if(weatherData != "")
 		callOutcome = "success";
 	
-	context.getLogger().log("Method Exit: handleRequest() @ "+getCurrentTime());
+	context.getLogger().log("\nMethod Exit: handleRequest() @ "+utils.getCurrentTime()+"\n");
 		return callOutcome;
 	}
 
 	private String callWeatherAPI(String city, Context context) {
-		context.getLogger().log("Method Entry: callWeatherAPI() @ "+ getCurrentTime());
+		context.getLogger().log("\nMethod Entry: callWeatherAPI() @ "+ utils.getCurrentTime());
 
 		String weatherOutput = "";
 		String zip = city;
@@ -52,7 +50,7 @@ public class Hello implements RequestHandler<Object, String> {
 		        }
 
 		        BufferedReader br = new BufferedReader(new InputStreamReader((conn.getInputStream())));
-		        System.out.println("Output from Server .... \n");
+		        System.out.println("\nOutput from Server .... \n");
 		        while ((weatherOutput = br.readLine()) != null) {
 		            System.out.println(weatherOutput);
 					//weatherData.setResponse(output);
@@ -64,16 +62,8 @@ public class Hello implements RequestHandler<Object, String> {
 		      } catch (IOException e) {
 		        e.printStackTrace();
 		      }
-		context.getLogger().log("Method Exit: callWeatherAPI() @ "+getCurrentTime());
+		context.getLogger().log("\nMethod Exit: callWeatherAPI() @ "+utils.getCurrentTime());
 		return weatherOutput;
-	}
-
-	private String getCurrentTime() {
-		LocalDateTime localtDateAndTime = LocalDateTime.now();
-	    ZoneId zoneId = ZoneId.of("America/New_York");
-	    ZonedDateTime dateAndTimeInNY  = ZonedDateTime.of(localtDateAndTime, zoneId);
-	    String currentTimewithTimeZone = dateAndTimeInNY.getHour()+":"+dateAndTimeInNY.getMinute()+":"+dateAndTimeInNY.getSecond();
-		return currentTimewithTimeZone;
 	}
 
 }
